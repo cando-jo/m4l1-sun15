@@ -1,55 +1,101 @@
-# İçeri Aktarma
 from flask import Flask, render_template,request, redirect
-# Veritabanı kütüphanesini içe aktarma
+# Veri tabanı kitaplığını bağlama
 from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
-# SQLite ile bağlantı kurma 
+# SQLite'ı bağlama
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///diary.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# DB oluşturma
-db = SQLAlchemy(app )
+# Veri tabanı oluşturma
+db = SQLAlchemy(app)
+# Tablo oluşturma
 
-#Görev #1. DB tablosu oluşturma
 class Card(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
+    # Sütun oluşturma
+    # id
+    id = db.Column(db.Integer, primary_key=True)
+    # Başlık
     title = db.Column(db.String(100), nullable=False)
-    subtitle = db.Column(db.String(200), nullable=False)
-    text = db.Column(db.String(400), nullable=False)
-    
+    # Tanım
+    subtitle = db.Column(db.String(300), nullable=False)
+    # Metin
+    text = db.Column(db.Text, nullable=False)
+
+    # Nesnenin ve kimliğin çıktısı
     def __repr__(self):
         return f'<Card {self.id}>'
+    
+
 
 
 with app.app_context():
     db.create_all()
+    
+#Ödev #2. Kullanıcı tablosunu oluşturun
+
+
+
+
+
+
+
+
 
 # İçerik sayfasını çalıştırma
-@app.route('/')
+@app.route('/', methods=['GET','POST'])
+def login():
+        error = ''
+        if request.method == 'POST':
+            form_login = request.form['email']
+            form_password = request.form['password']
+            
+            #Ödev #4. yetkilendirmeyi uygulamak
+            
+
+
+            
+        else:
+            return render_template('login.html')
+
+
+
+@app.route('/reg', methods=['GET','POST'])
+def reg():
+    if request.method == 'POST':
+        login= request.form['email']
+        password = request.form['password']
+        
+        #Ödev #3 Kullanıcı verilerinin veri tabanına kaydedilmesini sağlayın
+        
+
+        
+        return redirect('/')
+    
+    else:    
+        return render_template('registration.html')
+
+
+# İçerik sayfasını çalıştırma
+@app.route('/index')
 def index():
-    # DB nesnelerini görüntüleme
-    # Görev #2. DB'deki nesneleri index.html'de görüntüleme
+    # Veri tabanı girişlerini görüntüleme
     cards = Card.query.order_by(Card.id).all()
+    return render_template('index.html', cards=cards)
 
-    return render_template('index.html',
-                           cards=cards
-                           )
-
-# Kartla sayfayı çalıştırma
-@app.route('/card/<int:id>') #/card/2
+# Kayıt sayfasını çalıştırma
+@app.route('/card/<int:id>')
 def card(id):
-    # Görev #2. Id'ye göre doğru kartı görüntüleme
     card = Card.query.get(id)
 
     return render_template('card.html', card=card)
 
-# Sayfayı çalıştırma ve kart oluşturma
+# Giriş oluşturma sayfasını çalıştırma
 @app.route('/create')
 def create():
     return render_template('create_card.html')
 
-# Kart formu
+# Giriş formu
 @app.route('/form_create', methods=['GET','POST'])
 def form_create():
     if request.method == 'POST':
@@ -57,14 +103,17 @@ def form_create():
         subtitle =  request.form['subtitle']
         text =  request.form['text']
 
-        # Görev #2. Verileri DB'de depolamak için bir yol oluşturma
+        # Veri tabanına gönderilecek bir nesne oluşturma
         card = Card(title=title, subtitle=subtitle, text=text)
+
         db.session.add(card)
         db.session.commit()
-
-        return redirect('/')
+        return redirect('/index')
     else:
         return render_template('create_card.html')
+
+
+
 
 
 if __name__ == "__main__":
