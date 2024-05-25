@@ -28,20 +28,17 @@ class Card(db.Model):
     
 
 
-
-with app.app_context():
-    db.create_all()
     
 #Ödev #2. Kullanıcı tablosunu oluşturun
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    email = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
 
 
-
-
-
-
-
-
+with app.app_context():
+    db.create_all()
 # İçerik sayfasını çalıştırma
 @app.route('/', methods=['GET','POST'])
 def login():
@@ -51,8 +48,13 @@ def login():
             form_password = request.form['password']
             
             #Ödev #4. yetkilendirmeyi uygulamak
-            
-
+            users_db = User.query.all()
+            for user in users_db:
+                if form_login == user.email and form_password == user.password:
+                    return redirect('/index')
+            else:
+                error = 'Incorrect login or password'
+                return render_template('login.html', error=error)
 
             
         else:
@@ -63,11 +65,13 @@ def login():
 @app.route('/reg', methods=['GET','POST'])
 def reg():
     if request.method == 'POST':
-        login= request.form['email']
+        login = request.form['email']
         password = request.form['password']
         
         #Ödev #3 Kullanıcı verilerinin veri tabanına kaydedilmesini sağlayın
-        
+        user = User(email=login, password=password)
+        db.session.add(user)
+        db.session.commit()
 
         
         return redirect('/')
